@@ -1,0 +1,1602 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Trading Screening Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .batch-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .overview-section {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .metric-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .grouped-table {
+            padding: 30px;
+        }
+        
+        .stock-group {
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .stock-header {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+        
+        .stock-header:hover {
+            background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+        }
+        
+        .stock-header.bearish {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        
+        .stock-header.bearish:hover {
+            background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+        }
+        
+        .stock-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .symbol {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .direction-indicator {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .bullish {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .bearish {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .stock-summary {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .summary-item {
+            text-align: center;
+        }
+        
+        .summary-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+        
+        .summary-value {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .expand-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+        
+        .stock-details {
+            display: none;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .stock-details.expanded {
+            display: block;
+        }
+        
+        .opportunities-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .opportunities-table th,
+        .opportunities-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .opportunities-table th {
+            background: #34495e;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .opportunities-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .entry-model {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        
+        .direct-entry {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .confirmation-entry {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .score-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .score-high {
+            background: #27ae60;
+        }
+        
+        .score-medium {
+            background: #f39c12;
+        }
+        
+        .score-low {
+            background: #e74c3c;
+        }
+        
+        .rr-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+        
+        .rr-excellent {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .rr-good {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .rr-fair {
+            background: #e67e22;
+            color: white;
+        }
+        
+        .rr-poor {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .detailed-section {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        
+        .analysis-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .confirmations {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .confirmation-tag {
+            background: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .batch-info,
+            .overview-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stock-summary {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="header">
+            <h1>🚀 Enhanced Trading Screening Report</h1>
+            <p>Advanced Interactive Analysis Dashboard</p>
+            
+            <div class="batch-info">
+                <div class="info-card">
+                    <h3>📊 Batch Information</h3>
+                    <p><strong>Batch Size:</strong> 5 stocks</p>
+                    <p><strong>Total Stocks:</strong> 10</p>
+                    <p><strong>Processed:</strong> 10</p>
+                    <p><strong>Generated:</strong> 2025-09-07 15:04:21</p>
+                </div>
+                
+                <div class="info-card">
+                    <h3>🎯 Results Summary</h3>
+                    <p><strong>Opportunities:</strong> 15</p>
+                    <p><strong>Unique Stocks:</strong> 10</p>
+                    <p><strong>Success Rate:</strong> 100.0%</p>
+                    <p><strong>Data Source:</strong> Kite API (Real-time)</p>
+                </div>
+            </div>
+        </div>
+        
+        
+        <div class="overview-section">
+            <h2>📊 Market Overview</h2>
+            
+            <div class="overview-grid">
+                <div class="metric-card">
+                    <div class="metric-value">15</div>
+                    <div class="metric-label">Total Opportunities</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value">10</div>
+                    <div class="metric-label">Unique Stocks</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value">163.6</div>
+                    <div class="metric-label">Average Score</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value">176.2</div>
+                    <div class="metric-label">Average R:R</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value">7</div>
+                    <div class="metric-label">Bullish Setups</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value">8</div>
+                    <div class="metric-label">Bearish Setups</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value">12</div>
+                    <div class="metric-label">Direct Entries</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value">3</div>
+                    <div class="metric-label">Confirmation Entries</div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <div class="grouped-table">
+            <h2>🎯 Trading Opportunities by Stock</h2>
+            <p>Click on any stock to view detailed opportunities</p>
+            
+            <div class="stock-group">
+                <div class="stock-header bearish" data-symbol="SBIN">
+                    <div class="stock-title">
+                        <span class="symbol">SBIN</span>
+                        <span class="direction-indicator bearish">📉 BEARISH</span>
+                    </div>
+                    
+                    <div class="stock-summary">
+                        <div class="summary-item">
+                            <div class="summary-label">Opportunities</div>
+                            <div class="summary-value">1</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best Score</div>
+                            <div class="summary-value">347</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best R:R</div>
+                            <div class="summary-value">35.4</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Entry Price</div>
+                            <div class="summary-value">₹814.67</div>
+                        </div>
+                        
+                        <div class="expand-icon" id="icon-SBIN">▼</div>
+                    </div>
+                </div>
+                
+                <div class="stock-details" id="details-SBIN">
+                    
+        <table class="opportunities-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Direction</th>
+                    <th>Entry Model</th>
+                    <th>Entry Price</th>
+                    <th>Stop Loss</th>
+                    <th>Target</th>
+                    <th>R:R Ratio</th>
+                    <th>Score</th>
+                    <th>Confirmations</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            <tr>
+                <td>1</td>
+                <td>📉</td>
+                <td><span class="entry-model direct-entry">Model1 Direct Entry</span></td>
+                <td>₹814.67</td>
+                <td>₹815.01</td>
+                <td>₹802.65</td>
+                <td><span class="rr-badge rr-excellent">35.4</span></td>
+                <td><span class="score-badge score-high">347</span></td>
+                <td><div class='confirmations'><span class='confirmation-tag'>Level_support_high_volume</span><span class='confirmation-tag'>Level_support_pivot_low</span><span class='confirmation-tag'>Fibonacci_fib_38.2</span><span class='confirmation-tag'>Fibonacci_fib_50.0</span><span class='confirmation-tag'>Fibonacci_fib_61.8</span></div></td>
+            </tr>
+            
+            </tbody>
+        </table>
+        
+                </div>
+            </div>
+            
+            <div class="stock-group">
+                <div class="stock-header bearish" data-symbol="HDFCBANK">
+                    <div class="stock-title">
+                        <span class="symbol">HDFCBANK</span>
+                        <span class="direction-indicator bearish">📉 BEARISH</span>
+                    </div>
+                    
+                    <div class="stock-summary">
+                        <div class="summary-item">
+                            <div class="summary-label">Opportunities</div>
+                            <div class="summary-value">1</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best Score</div>
+                            <div class="summary-value">286</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best R:R</div>
+                            <div class="summary-value">8.9</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Entry Price</div>
+                            <div class="summary-value">₹973.03</div>
+                        </div>
+                        
+                        <div class="expand-icon" id="icon-HDFCBANK">▼</div>
+                    </div>
+                </div>
+                
+                <div class="stock-details" id="details-HDFCBANK">
+                    
+        <table class="opportunities-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Direction</th>
+                    <th>Entry Model</th>
+                    <th>Entry Price</th>
+                    <th>Stop Loss</th>
+                    <th>Target</th>
+                    <th>R:R Ratio</th>
+                    <th>Score</th>
+                    <th>Confirmations</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            <tr>
+                <td>1</td>
+                <td>📉</td>
+                <td><span class="entry-model direct-entry">Model1 Direct Entry</span></td>
+                <td>₹973.03</td>
+                <td>₹974.49</td>
+                <td>₹960.00</td>
+                <td><span class="rr-badge rr-excellent">8.9</span></td>
+                <td><span class="score-badge score-high">286</span></td>
+                <td><div class='confirmations'><span class='confirmation-tag'>Level_resistance_psychological</span><span class='confirmation-tag'>Level_support_psychological</span><span class='confirmation-tag'>Fibonacci_fib_38.2</span><span class='confirmation-tag'>Fibonacci_fib_50.0</span><span class='confirmation-tag'>High_Volume_Level</span></div></td>
+            </tr>
+            
+            </tbody>
+        </table>
+        
+                </div>
+            </div>
+            
+            <div class="stock-group">
+                <div class="stock-header bearish" data-symbol="ITC">
+                    <div class="stock-title">
+                        <span class="symbol">ITC</span>
+                        <span class="direction-indicator bearish">📉 BEARISH</span>
+                    </div>
+                    
+                    <div class="stock-summary">
+                        <div class="summary-item">
+                            <div class="summary-label">Opportunities</div>
+                            <div class="summary-value">2</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best Score</div>
+                            <div class="summary-value">232</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best R:R</div>
+                            <div class="summary-value">128.1</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Entry Price</div>
+                            <div class="summary-value">₹415.50</div>
+                        </div>
+                        
+                        <div class="expand-icon" id="icon-ITC">▼</div>
+                    </div>
+                </div>
+                
+                <div class="stock-details" id="details-ITC">
+                    
+        <table class="opportunities-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Direction</th>
+                    <th>Entry Model</th>
+                    <th>Entry Price</th>
+                    <th>Stop Loss</th>
+                    <th>Target</th>
+                    <th>R:R Ratio</th>
+                    <th>Score</th>
+                    <th>Confirmations</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            <tr>
+                <td>1</td>
+                <td>📉</td>
+                <td><span class="entry-model direct-entry">Model1 Direct Entry</span></td>
+                <td>₹415.50</td>
+                <td>₹415.62</td>
+                <td>₹400.00</td>
+                <td><span class="rr-badge rr-excellent">128.1</span></td>
+                <td><span class="score-badge score-high">232</span></td>
+                <td><div class='confirmations'><span class='confirmation-tag'>Level_resistance_high_volume</span><span class='confirmation-tag'>Level_support_high_volume</span><span class='confirmation-tag'>Fibonacci_fib_38.2</span><span class='confirmation-tag'>Fibonacci_fib_50.0</span><span class='confirmation-tag'>Fibonacci_fib_61.8</span></div></td>
+            </tr>
+            
+            <tr>
+                <td>2</td>
+                <td>📉</td>
+                <td><span class="entry-model direct-entry">Model1 Direct Entry</span></td>
+                <td>₹411.42</td>
+                <td>₹411.53</td>
+                <td>₹400.00</td>
+                <td><span class="rr-badge rr-excellent">103.6</span></td>
+                <td><span class="score-badge score-high">149</span></td>
+                <td><div class='confirmations'><span class='confirmation-tag'>Level_resistance_high_volume</span><span class='confirmation-tag'>Fibonacci_fib_23.6</span><span class='confirmation-tag'>Fibonacci_fib_38.2</span><span class='confirmation-tag'>High_Volume_Level</span></div></td>
+            </tr>
+            
+            </tbody>
+        </table>
+        
+                </div>
+            </div>
+            
+            <div class="stock-group">
+                <div class="stock-header" data-symbol="TCS">
+                    <div class="stock-title">
+                        <span class="symbol">TCS</span>
+                        <span class="direction-indicator bullish">📈 BULLISH</span>
+                    </div>
+                    
+                    <div class="stock-summary">
+                        <div class="summary-item">
+                            <div class="summary-label">Opportunities</div>
+                            <div class="summary-value">2</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best Score</div>
+                            <div class="summary-value">212</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best R:R</div>
+                            <div class="summary-value">116.7</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Entry Price</div>
+                            <div class="summary-value">₹3017.82</div>
+                        </div>
+                        
+                        <div class="expand-icon" id="icon-TCS">▼</div>
+                    </div>
+                </div>
+                
+                <div class="stock-details" id="details-TCS">
+                    
+        <table class="opportunities-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Direction</th>
+                    <th>Entry Model</th>
+                    <th>Entry Price</th>
+                    <th>Stop Loss</th>
+                    <th>Target</th>
+                    <th>R:R Ratio</th>
+                    <th>Score</th>
+                    <th>Confirmations</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            <tr>
+                <td>1</td>
+                <td>📈</td>
+                <td><span class="entry-model confirmation-entry">Model2 Confirmation Entry</span></td>
+                <td>₹3017.82</td>
+                <td>₹3016.68</td>
+                <td>₹3150.00</td>
+                <td><span class="rr-badge rr-excellent">116.7</span></td>
+                <td><span class="score-badge score-high">212</span></td>
+                <td><div class='confirmations'><span class='confirmation-tag'>Level_support_pivot_low</span><span class='confirmation-tag'>Fibonacci_fib_78.6</span><span class='confirmation-tag'>High_Volume_Level</span><span class='confirmation-tag'>Trendline_Break_resistance</span></div></td>
+            </tr>
+            
+            <tr>
+                <td>2</td>
+                <td>📈</td>
+                <td><span class="entry-model direct-entry">Model1 Direct Entry</span></td>
+                <td>₹3017.82</td>
+                <td>₹3016.68</td>
+                <td>₹3150.00</td>
+                <td><span class="rr-badge rr-excellent">116.7</span></td>
+                <td><span class="score-badge score-high">211</span></td>
+                <td><div class='confirmations'><span class='confirmation-tag'>Level_support_pivot_low</span><span class='confirmation-tag'>Fibonacci_fib_78.6</span><span class='confirmation-tag'>High_Volume_Level</span></div></td>
+            </tr>
+            
+            </tbody>
+        </table>
+        
+                </div>
+            </div>
+            
+            <div class="stock-group">
+                <div class="stock-header bearish" data-symbol="RELIANCE">
+                    <div class="stock-title">
+                        <span class="symbol">RELIANCE</span>
+                        <span class="direction-indicator bearish">📉 BEARISH</span>
+                    </div>
+                    
+                    <div class="stock-summary">
+                        <div class="summary-item">
+                            <div class="summary-label">Opportunities</div>
+                            <div class="summary-value">2</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best Score</div>
+                            <div class="summary-value">211</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best R:R</div>
+                            <div class="summary-value">12.0</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Entry Price</div>
+                            <div class="summary-value">₹1388.75</div>
+                        </div>
+                        
+                        <div class="expand-icon" id="icon-RELIANCE">▼</div>
+                    </div>
+                </div>
+                
+                <div class="stock-details" id="details-RELIANCE">
+                    
+        <table class="opportunities-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Direction</th>
+                    <th>Entry Model</th>
+                    <th>Entry Price</th>
+                    <th>Stop Loss</th>
+                    <th>Target</th>
+                    <th>R:R Ratio</th>
+                    <th>Score</th>
+                    <th>Confirmations</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            <tr>
+                <td>1</td>
+                <td>📉</td>
+                <td><span class="entry-model direct-entry">Model1 Direct Entry</span></td>
+                <td>₹1388.75</td>
+                <td>₹1391.13</td>
+                <td>₹1370.10</td>
+                <td><span class="rr-badge rr-excellent">7.8</span></td>
+                <td><span class="score-badge score-high">211</span></td>
+                <td><div class='confirmations'><span class='confirmation-tag'>Level_resistance_psychological</span><span class='confirmation-tag'>Level_support_pivot_low</span><span class='confirmation-tag'>Fibonacci_fib_23.6</span><span class='confirmation-tag'>High_Volume_Level</span></div></td>
+            </tr>
+            
+            <tr>
+                <td>2</td>
+                <td>📉</td>
+                <td><span class="entry-model direct-entry">Model1 Direct Entry</span></td>
+                <td>₹1402.50</td>
+                <td>₹1405.20</td>
+                <td>₹1370.10</td>
+                <td><span class="rr-badge rr-excellent">12.0</span></td>
+                <td><span class="score-badge score-high">147</span></td>
+                <td><div class='confirmations'><span class='confirmation-tag'>Level_resistance_psychological</span><span class='confirmation-tag'>Fibonacci_fib_23.6</span><span class='confirmation-tag'>High_Volume_Level</span></div></td>
+            </tr>
+            
+            </tbody>
+        </table>
+        
+                </div>
+            </div>
+            
+            <div class="stock-group">
+                <div class="stock-header" data-symbol="BHARTIARTL">
+                    <div class="stock-title">
+                        <span class="symbol">BHARTIARTL</span>
+                        <span class="direction-indicator bullish">📈 BULLISH</span>
+                    </div>
+                    
+                    <div class="stock-summary">
+                        <div class="summary-item">
+                            <div class="summary-label">Opportunities</div>
+                            <div class="summary-value">2</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best Score</div>
+                            <div class="summary-value">184</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best R:R</div>
+                            <div class="summary-value">29.8</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Entry Price</div>
+                            <div class="summary-value">₹1857.39</div>
+                        </div>
+                        
+                        <div class="expand-icon" id="icon-BHARTIARTL">▼</div>
+                    </div>
+                </div>
+                
+                <div class="stock-details" id="details-BHARTIARTL">
+                    
+        <table class="opportunities-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Direction</th>
+                    <th>Entry Model</th>
+                    <th>Entry Price</th>
+                    <th>Stop Loss</th>
+                    <th>Target</th>
+                    <th>R:R Ratio</th>
+                    <th>Score</th>
+                    <th>Confirmations</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            <tr>
+                <td>1</td>
+                <td>📈</td>
+                <td><span class="entry-model direct-entry">Model1 Direct Entry</span></td>
+                <td>₹1857.39</td>
+                <td>₹1855.10</td>
+                <td>₹1925.80</td>
+                <td><span class="rr-badge rr-excellent">29.8</span></td>
+                <td><span class="score-badge score-high">184</span></td>
+                <td><div class='confirmations'><span class='confirmation-tag'>Level_support_pivot_low</span><span class='confirmation-tag'>Level_support_pivot_low</span><span class='confirmation-tag'>Fibonacci_fib_78.6</span><span class='confirmation-tag'>High_Volume_Level</span></div></td>
+            </tr>
+            
+            <tr>
+                <td>2</td>
+                <td>📈</td>
+                <td><span class="entry-model direct-entry">Model1 Direct Entry</span></td>
+                <td>₹1876.35</td>
+                <td>₹1873.82</td>
+                <td>₹1925.80</td>
+                <td><span class="rr-badge rr-excellent">19.6</span></td>
+                <td><span class="score-badge score-high">86</span></td>
+                <td><div class='confirmations'><span class='confirmation-tag'>Level_support_pivot_low</span><span class='confirmation-tag'>Fibonacci_fib_61.8</span><span class='confirmation-tag'>Fibonacci_fib_78.6</span><span class='confirmation-tag'>High_Volume_Level</span></div></td>
+            </tr>
+            
+            </tbody>
+        </table>
+        
+                </div>
+            </div>
+            
+            <div class="stock-group">
+                <div class="stock-header bearish" data-symbol="KOTAKBANK">
+                    <div class="stock-title">
+                        <span class="symbol">KOTAKBANK</span>
+                        <span class="direction-indicator bearish">📉 BEARISH</span>
+                    </div>
+                    
+                    <div class="stock-summary">
+                        <div class="summary-item">
+                            <div class="summary-label">Opportunities</div>
+                            <div class="summary-value">1</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best Score</div>
+                            <div class="summary-value">131</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best R:R</div>
+                            <div class="summary-value">4.5</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Entry Price</div>
+                            <div class="summary-value">₹1964.95</div>
+                        </div>
+                        
+                        <div class="expand-icon" id="icon-KOTAKBANK">▼</div>
+                    </div>
+                </div>
+                
+                <div class="stock-details" id="details-KOTAKBANK">
+                    
+        <table class="opportunities-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Direction</th>
+                    <th>Entry Model</th>
+                    <th>Entry Price</th>
+                    <th>Stop Loss</th>
+                    <th>Target</th>
+                    <th>R:R Ratio</th>
+                    <th>Score</th>
+                    <th>Confirmations</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            <tr>
+                <td>1</td>
+                <td>📉</td>
+                <td><span class="entry-model direct-entry">Model1 Direct Entry</span></td>
+                <td>₹1964.95</td>
+                <td>₹1970.25</td>
+                <td>₹1941.10</td>
+                <td><span class="rr-badge rr-excellent">4.5</span></td>
+                <td><span class="score-badge score-high">131</span></td>
+                <td><div class='confirmations'><span class='confirmation-tag'>Level_resistance_pivot_high</span><span class='confirmation-tag'>Level_support_pivot_low</span><span class='confirmation-tag'>High_Volume_Level</span></div></td>
+            </tr>
+            
+            </tbody>
+        </table>
+        
+                </div>
+            </div>
+            
+            <div class="stock-group">
+                <div class="stock-header bearish" data-symbol="ICICIBANK">
+                    <div class="stock-title">
+                        <span class="symbol">ICICIBANK</span>
+                        <span class="direction-indicator bearish">📉 BEARISH</span>
+                    </div>
+                    
+                    <div class="stock-summary">
+                        <div class="summary-item">
+                            <div class="summary-label">Opportunities</div>
+                            <div class="summary-value">1</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best Score</div>
+                            <div class="summary-value">126</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best R:R</div>
+                            <div class="summary-value">2.8</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Entry Price</div>
+                            <div class="summary-value">₹1416.83</div>
+                        </div>
+                        
+                        <div class="expand-icon" id="icon-ICICIBANK">▼</div>
+                    </div>
+                </div>
+                
+                <div class="stock-details" id="details-ICICIBANK">
+                    
+        <table class="opportunities-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Direction</th>
+                    <th>Entry Model</th>
+                    <th>Entry Price</th>
+                    <th>Stop Loss</th>
+                    <th>Target</th>
+                    <th>R:R Ratio</th>
+                    <th>Score</th>
+                    <th>Confirmations</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            <tr>
+                <td>1</td>
+                <td>📉</td>
+                <td><span class="entry-model direct-entry">Model1 Direct Entry</span></td>
+                <td>₹1416.83</td>
+                <td>₹1428.39</td>
+                <td>₹1384.20</td>
+                <td><span class="rr-badge rr-good">2.8</span></td>
+                <td><span class="score-badge score-high">126</span></td>
+                <td><div class='confirmations'><span class='confirmation-tag'>Level_support_pivot_low</span><span class='confirmation-tag'>Fibonacci_fib_23.6</span><span class='confirmation-tag'>Fibonacci_fib_38.2</span><span class='confirmation-tag'>High_Volume_Level</span></div></td>
+            </tr>
+            
+            </tbody>
+        </table>
+        
+                </div>
+            </div>
+            
+            <div class="stock-group">
+                <div class="stock-header" data-symbol="HINDUNILVR">
+                    <div class="stock-title">
+                        <span class="symbol">HINDUNILVR</span>
+                        <span class="direction-indicator bullish">📈 BULLISH</span>
+                    </div>
+                    
+                    <div class="stock-summary">
+                        <div class="summary-item">
+                            <div class="summary-label">Opportunities</div>
+                            <div class="summary-value">1</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best Score</div>
+                            <div class="summary-value">53</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best R:R</div>
+                            <div class="summary-value">49.5</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Entry Price</div>
+                            <div class="summary-value">₹2580.73</div>
+                        </div>
+                        
+                        <div class="expand-icon" id="icon-HINDUNILVR">▼</div>
+                    </div>
+                </div>
+                
+                <div class="stock-details" id="details-HINDUNILVR">
+                    
+        <table class="opportunities-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Direction</th>
+                    <th>Entry Model</th>
+                    <th>Entry Price</th>
+                    <th>Stop Loss</th>
+                    <th>Target</th>
+                    <th>R:R Ratio</th>
+                    <th>Score</th>
+                    <th>Confirmations</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            <tr>
+                <td>1</td>
+                <td>📈</td>
+                <td><span class="entry-model confirmation-entry">Model2 Confirmation Entry</span></td>
+                <td>₹2580.73</td>
+                <td>₹2578.32</td>
+                <td>₹2700.00</td>
+                <td><span class="rr-badge rr-excellent">49.5</span></td>
+                <td><span class="score-badge score-high">53</span></td>
+                <td><div class='confirmations'><span class='confirmation-tag'>Level_support_high_volume</span><span class='confirmation-tag'>Fibonacci_fib_38.2</span><span class='confirmation-tag'>High_Volume_Level</span><span class='confirmation-tag'>Trendline_Break_resistance</span></div></td>
+            </tr>
+            
+            </tbody>
+        </table>
+        
+                </div>
+            </div>
+            
+            <div class="stock-group">
+                <div class="stock-header" data-symbol="INFY">
+                    <div class="stock-title">
+                        <span class="symbol">INFY</span>
+                        <span class="direction-indicator bullish">📈 BULLISH</span>
+                    </div>
+                    
+                    <div class="stock-summary">
+                        <div class="summary-item">
+                            <div class="summary-label">Opportunities</div>
+                            <div class="summary-value">2</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best Score</div>
+                            <div class="summary-value">40</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Best R:R</div>
+                            <div class="summary-value">1003.8</div>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <div class="summary-label">Entry Price</div>
+                            <div class="summary-value">₹1430.15</div>
+                        </div>
+                        
+                        <div class="expand-icon" id="icon-INFY">▼</div>
+                    </div>
+                </div>
+                
+                <div class="stock-details" id="details-INFY">
+                    
+        <table class="opportunities-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Direction</th>
+                    <th>Entry Model</th>
+                    <th>Entry Price</th>
+                    <th>Stop Loss</th>
+                    <th>Target</th>
+                    <th>R:R Ratio</th>
+                    <th>Score</th>
+                    <th>Confirmations</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            <tr>
+                <td>1</td>
+                <td>📈</td>
+                <td><span class="entry-model confirmation-entry">Model2 Confirmation Entry</span></td>
+                <td>₹1430.15</td>
+                <td>₹1430.09</td>
+                <td>₹1499.00</td>
+                <td><span class="rr-badge rr-excellent">1003.8</span></td>
+                <td><span class="score-badge score-high">40</span></td>
+                <td><div class='confirmations'><span class='confirmation-tag'>Level_support_high_volume</span><span class='confirmation-tag'>Fibonacci_fib_78.6</span><span class='confirmation-tag'>High_Volume_Level</span><span class='confirmation-tag'>Trendline_Break_resistance</span></div></td>
+            </tr>
+            
+            <tr>
+                <td>2</td>
+                <td>📈</td>
+                <td><span class="entry-model direct-entry">Model1 Direct Entry</span></td>
+                <td>₹1430.15</td>
+                <td>₹1430.09</td>
+                <td>₹1499.00</td>
+                <td><span class="rr-badge rr-excellent">1003.8</span></td>
+                <td><span class="score-badge score-high">39</span></td>
+                <td><div class='confirmations'><span class='confirmation-tag'>Level_support_high_volume</span><span class='confirmation-tag'>Fibonacci_fib_78.6</span><span class='confirmation-tag'>High_Volume_Level</span></div></td>
+            </tr>
+            
+            </tbody>
+        </table>
+        
+                </div>
+            </div>
+            
+        </div>
+        
+        
+        <div class="detailed-section">
+            <h2>📋 Detailed Stock Analysis</h2>
+            <p>Comprehensive breakdown of top performing stocks</p>
+            
+            <div class="analysis-card">
+                <h3>📊 SBIN - Detailed Analysis</h3>
+                
+                <div class="overview-grid" style="margin-top: 15px;">
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">1</div>
+                        <div class="metric-label">Total Opportunities</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">347.0</div>
+                        <div class="metric-label">Average Score</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">35.4</div>
+                        <div class="metric-label">Average R:R</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">0/1</div>
+                        <div class="metric-label">Bullish/Bearish</div>
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">🎯 Key Confirmations:</h4>
+                <div class="confirmations">
+                    <span class='confirmation-tag'>High_Volume_Level</span><span class='confirmation-tag'>Fibonacci_fib_38.2</span><span class='confirmation-tag'>Fibonacci_fib_61.8</span><span class='confirmation-tag'>Level_support_pivot_low</span><span class='confirmation-tag'>Level_support_high_volume</span><span class='confirmation-tag'>Fibonacci_fib_50.0</span>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">📈 Best Opportunity:</h4>
+                <p><strong>Entry Model:</strong> Model1 Direct Entry</p>
+                <p><strong>Entry Price:</strong> ₹814.67</p>
+                <p><strong>Target:</strong> ₹802.65</p>
+                <p><strong>Stop Loss:</strong> ₹815.01</p>
+                <p><strong>R:R Ratio:</strong> 35.4</p>
+                <p><strong>Score:</strong> 347</p>
+                
+                <p style="margin-top: 10px;"><strong>Notes:</strong> Direct entry at resistance with 6 confirmations</p>
+            </div>
+            
+            <div class="analysis-card">
+                <h3>📊 HDFCBANK - Detailed Analysis</h3>
+                
+                <div class="overview-grid" style="margin-top: 15px;">
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">1</div>
+                        <div class="metric-label">Total Opportunities</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">286.0</div>
+                        <div class="metric-label">Average Score</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">8.9</div>
+                        <div class="metric-label">Average R:R</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">0/1</div>
+                        <div class="metric-label">Bullish/Bearish</div>
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">🎯 Key Confirmations:</h4>
+                <div class="confirmations">
+                    <span class='confirmation-tag'>High_Volume_Level</span><span class='confirmation-tag'>Fibonacci_fib_38.2</span><span class='confirmation-tag'>Fibonacci_fib_50.0</span><span class='confirmation-tag'>Level_support_psychological</span><span class='confirmation-tag'>Level_resistance_psychological</span>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">📈 Best Opportunity:</h4>
+                <p><strong>Entry Model:</strong> Model1 Direct Entry</p>
+                <p><strong>Entry Price:</strong> ₹973.03</p>
+                <p><strong>Target:</strong> ₹960.00</p>
+                <p><strong>Stop Loss:</strong> ₹974.49</p>
+                <p><strong>R:R Ratio:</strong> 8.9</p>
+                <p><strong>Score:</strong> 286</p>
+                
+                <p style="margin-top: 10px;"><strong>Notes:</strong> Direct entry at resistance with 5 confirmations</p>
+            </div>
+            
+            <div class="analysis-card">
+                <h3>📊 ITC - Detailed Analysis</h3>
+                
+                <div class="overview-grid" style="margin-top: 15px;">
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">2</div>
+                        <div class="metric-label">Total Opportunities</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">190.5</div>
+                        <div class="metric-label">Average Score</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">115.9</div>
+                        <div class="metric-label">Average R:R</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">0/2</div>
+                        <div class="metric-label">Bullish/Bearish</div>
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">🎯 Key Confirmations:</h4>
+                <div class="confirmations">
+                    <span class='confirmation-tag'>High_Volume_Level</span><span class='confirmation-tag'>Level_resistance_high_volume</span><span class='confirmation-tag'>Fibonacci_fib_38.2</span><span class='confirmation-tag'>Fibonacci_fib_23.6</span><span class='confirmation-tag'>Fibonacci_fib_61.8</span><span class='confirmation-tag'>Level_support_high_volume</span><span class='confirmation-tag'>Fibonacci_fib_50.0</span>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">📈 Best Opportunity:</h4>
+                <p><strong>Entry Model:</strong> Model1 Direct Entry</p>
+                <p><strong>Entry Price:</strong> ₹415.50</p>
+                <p><strong>Target:</strong> ₹400.00</p>
+                <p><strong>Stop Loss:</strong> ₹415.62</p>
+                <p><strong>R:R Ratio:</strong> 128.1</p>
+                <p><strong>Score:</strong> 232</p>
+                
+                <p style="margin-top: 10px;"><strong>Notes:</strong> Direct entry at resistance with 6 confirmations</p>
+            </div>
+            
+            <div class="analysis-card">
+                <h3>📊 TCS - Detailed Analysis</h3>
+                
+                <div class="overview-grid" style="margin-top: 15px;">
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">2</div>
+                        <div class="metric-label">Total Opportunities</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">211.5</div>
+                        <div class="metric-label">Average Score</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">116.7</div>
+                        <div class="metric-label">Average R:R</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">2/0</div>
+                        <div class="metric-label">Bullish/Bearish</div>
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">🎯 Key Confirmations:</h4>
+                <div class="confirmations">
+                    <span class='confirmation-tag'>Trendline_Break_resistance</span><span class='confirmation-tag'>High_Volume_Level</span><span class='confirmation-tag'>Level_support_pivot_low</span><span class='confirmation-tag'>Fibonacci_fib_78.6</span>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">📈 Best Opportunity:</h4>
+                <p><strong>Entry Model:</strong> Model2 Confirmation Entry</p>
+                <p><strong>Entry Price:</strong> ₹3017.82</p>
+                <p><strong>Target:</strong> ₹3150.00</p>
+                <p><strong>Stop Loss:</strong> ₹3016.68</p>
+                <p><strong>R:R Ratio:</strong> 116.7</p>
+                <p><strong>Score:</strong> 212</p>
+                
+                <p style="margin-top: 10px;"><strong>Notes:</strong> Entry after trendline break + retest with 4 confirmations</p>
+            </div>
+            
+            <div class="analysis-card">
+                <h3>📊 RELIANCE - Detailed Analysis</h3>
+                
+                <div class="overview-grid" style="margin-top: 15px;">
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">2</div>
+                        <div class="metric-label">Total Opportunities</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">179.0</div>
+                        <div class="metric-label">Average Score</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">9.9</div>
+                        <div class="metric-label">Average R:R</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">0/2</div>
+                        <div class="metric-label">Bullish/Bearish</div>
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">🎯 Key Confirmations:</h4>
+                <div class="confirmations">
+                    <span class='confirmation-tag'>Level_resistance_psychological</span><span class='confirmation-tag'>High_Volume_Level</span><span class='confirmation-tag'>Fibonacci_fib_23.6</span><span class='confirmation-tag'>Level_support_pivot_low</span>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">📈 Best Opportunity:</h4>
+                <p><strong>Entry Model:</strong> Model1 Direct Entry</p>
+                <p><strong>Entry Price:</strong> ₹1388.75</p>
+                <p><strong>Target:</strong> ₹1370.10</p>
+                <p><strong>Stop Loss:</strong> ₹1391.13</p>
+                <p><strong>R:R Ratio:</strong> 7.8</p>
+                <p><strong>Score:</strong> 211</p>
+                
+                <p style="margin-top: 10px;"><strong>Notes:</strong> Direct entry at resistance with 4 confirmations</p>
+            </div>
+            
+            <div class="analysis-card">
+                <h3>📊 BHARTIARTL - Detailed Analysis</h3>
+                
+                <div class="overview-grid" style="margin-top: 15px;">
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">2</div>
+                        <div class="metric-label">Total Opportunities</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">135.0</div>
+                        <div class="metric-label">Average Score</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">24.7</div>
+                        <div class="metric-label">Average R:R</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">2/0</div>
+                        <div class="metric-label">Bullish/Bearish</div>
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">🎯 Key Confirmations:</h4>
+                <div class="confirmations">
+                    <span class='confirmation-tag'>High_Volume_Level</span><span class='confirmation-tag'>Fibonacci_fib_61.8</span><span class='confirmation-tag'>Level_support_pivot_low</span><span class='confirmation-tag'>Fibonacci_fib_78.6</span>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">📈 Best Opportunity:</h4>
+                <p><strong>Entry Model:</strong> Model1 Direct Entry</p>
+                <p><strong>Entry Price:</strong> ₹1857.39</p>
+                <p><strong>Target:</strong> ₹1925.80</p>
+                <p><strong>Stop Loss:</strong> ₹1855.10</p>
+                <p><strong>R:R Ratio:</strong> 29.8</p>
+                <p><strong>Score:</strong> 184</p>
+                
+                <p style="margin-top: 10px;"><strong>Notes:</strong> Direct entry at support with 4 confirmations</p>
+            </div>
+            
+            <div class="analysis-card">
+                <h3>📊 KOTAKBANK - Detailed Analysis</h3>
+                
+                <div class="overview-grid" style="margin-top: 15px;">
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">1</div>
+                        <div class="metric-label">Total Opportunities</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">131.0</div>
+                        <div class="metric-label">Average Score</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">4.5</div>
+                        <div class="metric-label">Average R:R</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">0/1</div>
+                        <div class="metric-label">Bullish/Bearish</div>
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">🎯 Key Confirmations:</h4>
+                <div class="confirmations">
+                    <span class='confirmation-tag'>Level_support_pivot_low</span><span class='confirmation-tag'>High_Volume_Level</span><span class='confirmation-tag'>Level_resistance_pivot_high</span>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">📈 Best Opportunity:</h4>
+                <p><strong>Entry Model:</strong> Model1 Direct Entry</p>
+                <p><strong>Entry Price:</strong> ₹1964.95</p>
+                <p><strong>Target:</strong> ₹1941.10</p>
+                <p><strong>Stop Loss:</strong> ₹1970.25</p>
+                <p><strong>R:R Ratio:</strong> 4.5</p>
+                <p><strong>Score:</strong> 131</p>
+                
+                <p style="margin-top: 10px;"><strong>Notes:</strong> Direct entry at resistance with 3 confirmations</p>
+            </div>
+            
+            <div class="analysis-card">
+                <h3>📊 ICICIBANK - Detailed Analysis</h3>
+                
+                <div class="overview-grid" style="margin-top: 15px;">
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">1</div>
+                        <div class="metric-label">Total Opportunities</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">126.0</div>
+                        <div class="metric-label">Average Score</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">2.8</div>
+                        <div class="metric-label">Average R:R</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">0/1</div>
+                        <div class="metric-label">Bullish/Bearish</div>
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">🎯 Key Confirmations:</h4>
+                <div class="confirmations">
+                    <span class='confirmation-tag'>Fibonacci_fib_38.2</span><span class='confirmation-tag'>High_Volume_Level</span><span class='confirmation-tag'>Fibonacci_fib_23.6</span><span class='confirmation-tag'>Level_support_pivot_low</span>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">📈 Best Opportunity:</h4>
+                <p><strong>Entry Model:</strong> Model1 Direct Entry</p>
+                <p><strong>Entry Price:</strong> ₹1416.83</p>
+                <p><strong>Target:</strong> ₹1384.20</p>
+                <p><strong>Stop Loss:</strong> ₹1428.39</p>
+                <p><strong>R:R Ratio:</strong> 2.8</p>
+                <p><strong>Score:</strong> 126</p>
+                
+                <p style="margin-top: 10px;"><strong>Notes:</strong> Direct entry at resistance with 4 confirmations</p>
+            </div>
+            
+            <div class="analysis-card">
+                <h3>📊 HINDUNILVR - Detailed Analysis</h3>
+                
+                <div class="overview-grid" style="margin-top: 15px;">
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">1</div>
+                        <div class="metric-label">Total Opportunities</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">53.0</div>
+                        <div class="metric-label">Average Score</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">49.5</div>
+                        <div class="metric-label">Average R:R</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">1/0</div>
+                        <div class="metric-label">Bullish/Bearish</div>
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">🎯 Key Confirmations:</h4>
+                <div class="confirmations">
+                    <span class='confirmation-tag'>Trendline_Break_resistance</span><span class='confirmation-tag'>Fibonacci_fib_38.2</span><span class='confirmation-tag'>High_Volume_Level</span><span class='confirmation-tag'>Level_support_high_volume</span>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">📈 Best Opportunity:</h4>
+                <p><strong>Entry Model:</strong> Model2 Confirmation Entry</p>
+                <p><strong>Entry Price:</strong> ₹2580.73</p>
+                <p><strong>Target:</strong> ₹2700.00</p>
+                <p><strong>Stop Loss:</strong> ₹2578.32</p>
+                <p><strong>R:R Ratio:</strong> 49.5</p>
+                <p><strong>Score:</strong> 53</p>
+                
+                <p style="margin-top: 10px;"><strong>Notes:</strong> Entry after trendline break + retest with 4 confirmations</p>
+            </div>
+            
+            <div class="analysis-card">
+                <h3>📊 INFY - Detailed Analysis</h3>
+                
+                <div class="overview-grid" style="margin-top: 15px;">
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">2</div>
+                        <div class="metric-label">Total Opportunities</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">39.5</div>
+                        <div class="metric-label">Average Score</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">1003.8</div>
+                        <div class="metric-label">Average R:R</div>
+                    </div>
+                    
+                    <div class="metric-card" style="margin: 0;">
+                        <div class="metric-value">2/0</div>
+                        <div class="metric-label">Bullish/Bearish</div>
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">🎯 Key Confirmations:</h4>
+                <div class="confirmations">
+                    <span class='confirmation-tag'>Trendline_Break_resistance</span><span class='confirmation-tag'>High_Volume_Level</span><span class='confirmation-tag'>Level_support_high_volume</span><span class='confirmation-tag'>Fibonacci_fib_78.6</span>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">📈 Best Opportunity:</h4>
+                <p><strong>Entry Model:</strong> Model2 Confirmation Entry</p>
+                <p><strong>Entry Price:</strong> ₹1430.15</p>
+                <p><strong>Target:</strong> ₹1499.00</p>
+                <p><strong>Stop Loss:</strong> ₹1430.09</p>
+                <p><strong>R:R Ratio:</strong> 1003.8</p>
+                <p><strong>Score:</strong> 40</p>
+                
+                <p style="margin-top: 10px;"><strong>Notes:</strong> Entry after trendline break + retest with 4 confirmations</p>
+            </div>
+            
+        </div>
+        
+    </div>
+    
+    <script>
+        // Toggle stock details
+        function toggleStock(symbol) {
+            const details = document.getElementById('details-' + symbol);
+            const icon = document.getElementById('icon-' + symbol);
+            
+            if (details.classList.contains('expanded')) {
+                details.classList.remove('expanded');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                details.classList.add('expanded');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+        
+        // Initialize tooltips and interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers to stock headers
+            document.querySelectorAll('.stock-header').forEach(header => {
+                header.addEventListener('click', function() {
+                    const symbol = this.dataset.symbol;
+                    toggleStock(symbol);
+                });
+            });
+            
+            // Add hover effects to metric cards
+            document.querySelectorAll('.metric-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.boxShadow = '0 5px 20px rgba(0,0,0,0.15)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+        

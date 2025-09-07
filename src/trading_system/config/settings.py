@@ -109,11 +109,39 @@ class TradingConfig:
 
 
 @dataclass
+class KiteConfig:
+    """Kite API configuration"""
+    # API credentials (to be set via environment variables or config file)
+    api_key: str = ""
+    api_secret: str = ""
+    access_token: str = ""
+    
+    # API settings
+    base_url: str = "https://api.kite.trade"
+    timeout: int = 30
+    
+    # Data preferences
+    use_kite_primary: bool = True      # Use Kite as primary data source
+    fallback_to_yahoo: bool = False    # Disable Yahoo fallback - Kite only!
+    
+    # Rate limiting
+    requests_per_second: int = 10      # Kite allows 10 requests per second
+    
+    # Instrument mapping
+    exchange: str = "NSE"              # Default exchange
+    
+    def is_configured(self) -> bool:
+        """Check if Kite API is properly configured"""
+        return bool(self.api_key and self.access_token)
+
+
+@dataclass
 class SystemConfig:
     """Overall system configuration"""
     market: MarketConfig = None
     analysis: AnalysisConfig = None
     trading: TradingConfig = None
+    kite: KiteConfig = None
     
     # Logging
     log_level: str = "INFO"
@@ -129,6 +157,8 @@ class SystemConfig:
             self.analysis = AnalysisConfig()
         if self.trading is None:
             self.trading = TradingConfig()
+        if self.kite is None:
+            self.kite = KiteConfig()
 
 
 # Global configuration instance

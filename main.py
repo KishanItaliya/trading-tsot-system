@@ -13,6 +13,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 from trading_system.system_manager import TradingSystemManager
 from trading_system.utils.logger import setup_logging
+from trading_system.utils.html_report_generator import HTMLReportGenerator
+from trading_system.utils.console_formatter import ConsoleFormatter
 from trading_system.config.settings import config
 
 def main():
@@ -24,6 +26,12 @@ def main():
                        help='Set logging level')
     parser.add_argument('--screening-only', action='store_true', 
                        help='Run screening only without generating charts')
+    parser.add_argument('--batch-size', '-b', type=int, default=20,
+                       help='Number of stocks to process in each batch (default: 20)')
+    parser.add_argument('--max-stocks', '-m', type=int, default=None,
+                       help='Maximum number of stocks to analyze (default: all stocks)')
+    parser.add_argument('--start-from', type=int, default=0,
+                       help='Start analysis from stock index (default: 0)')
     
     args = parser.parse_args()
     
@@ -33,6 +41,8 @@ def main():
     try:
         # Initialize trading system
         system = TradingSystemManager()
+        html_generator = HTMLReportGenerator()
+        console_formatter = ConsoleFormatter()
         
         if args.symbol:
             # Analyze single stock
@@ -40,49 +50,54 @@ def main():
             result = system.analyze_single_stock(args.symbol.upper())
             
             if 'error' in result:
-                print(f"Error analyzing {args.symbol}: {result['error']}")
+                print(console_formatter.format_error_message(f"Analysis failed: {result['error']}"))
                 return 1
             
-            # Print results
-            print(f"\n{'='*60}")
-            print(f"ANALYSIS RESULTS FOR {result['symbol']}")
-            print(f"{'='*60}")
-            print(f"Current Price: ₹{result['current_price']:.2f}")
-            print(f"Passes Pre-screening: {'Yes' if result['passes_filters'] else 'No'}")
-            print(f"Price Structure: {result['price_structure'].get('trend', 'N/A')} trend, "
-                  f"{result['price_structure'].get('structure_quality', 'N/A')} quality")
-            print(f"Trendlines Found: {result['trendlines_count']}")
-            print(f"Support/Resistance Levels: {result['support_resistance_levels']}")
-            print(f"Liquidity Zones: {result['liquidity_zones_count']}")
-            print(f"Trading Opportunities: {result['opportunities_count']}")
+            # Display beautiful console results
+            print(console_formatter.format_single_stock_analysis(result))
             
-            if result['opportunities']:
-                print(f"\nOPPORTUNITIES:")
-                for i, opp in enumerate(result['opportunities'], 1):
-                    print(f"{i}. {opp['entry_model']} - Entry: ₹{opp['entry_price']:.2f}, "
-                          f"RR: {opp['risk_reward_ratio']:.2f}, Score: {opp['confluence_score']}")
-            
-            print(f"{'='*60}")
+            # Generate HTML report
+            print(console_formatter.format_info_message("Generating detailed HTML report..."))
+            html_report_path = html_generator.generate_stock_analysis_report(result)
+            print(console_formatter.format_success_message(f"HTML Report saved: {html_report_path}"))
+            print(console_formatter.format_info_message("Open the HTML file in your browser for a beautiful, detailed report!"))
             
         else:
             # Run complete screening
             logger.info("Starting complete daily screening")
             
             if args.screening_only:
-                # Run screening only
-                opportunities = system.daily_screening()
+                # Run batch screening
+                all_opportunities = system.batch_screening(
+                    batch_size=args.batch_size,
+                    max_stocks=args.max_stocks,
+                    start_from=args.start_from
+                )
                 
-                if opportunities:
-                    # Generate text report only
-                    report_file = system.report_generator.save_daily_report(opportunities)
-                    summary_stats = system.report_generator.generate_summary_stats(opportunities)
+                if all_opportunities:
+                    # Display beautiful console summary
+                    print(console_formatter.format_screening_summary(all_opportunities))
                     
-                    print(f"\nScreening complete. Found {len(opportunities)} opportunities.")
-                    print(f"Report saved to: {report_file}")
-                    print(f"Best opportunity: {summary_stats['best_opportunity']['symbol']} "
-                          f"(Score: {summary_stats['best_opportunity']['confluence_score']})")
+                    # Generate text report
+                    report_file = system.report_generator.save_daily_report(all_opportunities)
+                    
+                    # Generate HTML report with batch information
+                    print(console_formatter.format_info_message("Generating beautiful HTML report..."))
+                    
+                    # Prepare batch info for HTML report
+                    batch_info = {
+                        'batch_size': args.batch_size,
+                        'max_stocks': args.max_stocks or len(system.nse_stocks),
+                        'total_stocks': min(args.max_stocks or len(system.nse_stocks), len(system.nse_stocks) - args.start_from),
+                        'processed_stocks': min(args.max_stocks or len(system.nse_stocks), len(system.nse_stocks) - args.start_from),
+                        'start_from': args.start_from
+                    }
+                    
+                    html_report_path = html_generator.generate_enhanced_batch_report(all_opportunities, batch_info)
+                    print(console_formatter.format_success_message(f"HTML Report saved: {html_report_path}"))
+                    print(console_formatter.format_success_message(f"Text Report saved: {report_file}"))
                 else:
-                    print("No opportunities found today.")
+                    print(console_formatter.format_error_message("No opportunities found in current market conditions."))
             else:
                 # Run complete analysis with charts
                 result = system.run_complete_analysis()

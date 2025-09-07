@@ -27,7 +27,10 @@ class TechnicalAnalyzer:
         trendlines = []
         
         if len(data) < 20:
+            logger.debug("Insufficient data for trendline detection")
             return trendlines
+        
+        logger.debug(f"Detecting trendlines on {len(data)} data points")
         
         try:
             # Find potential pivot points (highs and lows)
@@ -143,8 +146,12 @@ class TechnicalAnalyzer:
                 low_val = data.iloc[i]['Low']
                 
                 # Check if price touched the line within tolerance
-                high_diff = abs(high_val - line_value) / line_value
-                low_diff = abs(low_val - line_value) / line_value
+                # Avoid division by zero
+                if line_value == 0:
+                    continue
+                
+                high_diff = abs(high_val - line_value) / abs(line_value)
+                low_diff = abs(low_val - line_value) / abs(line_value)
                 
                 if min(high_diff, low_diff) <= tolerance:
                     touches += 1

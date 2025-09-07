@@ -4,14 +4,36 @@ A comprehensive trading system implementation following "The Trader's Playbook" 
 
 ## Features
 
-- **Multi-timeframe Analysis**: Analyzes stocks across multiple timeframes (weekly, daily, 4H, hourly, 15min, 5min)
-- **Technical Analysis**: Detects trendlines, support/resistance levels, Fibonacci retracements, and price structure
-- **Liquidity Zone Detection**: Identifies high-confluence liquidity zones using multiple confirmation methods
-- **Entry Model Detection**: Implements Entry Model 1 (direct entry) and Entry Model 2 (confirmation entry)
-- **Risk Management**: Built-in risk management with configurable parameters
-- **Automated Screening**: Daily screening of 50+ NSE stocks
-- **Interactive Charts**: Generates interactive HTML charts for opportunities
-- **Comprehensive Reports**: Text and JSON reports with detailed analysis
+### 🚀 **Core Trading Analysis**
+- **🔴 Real-Time Data**: Integrated with Zerodha Kite API for live, accurate NSE market data
+- **📊 Multi-timeframe Analysis**: Analyzes stocks across multiple timeframes (weekly, daily, 4H, hourly, 15min, 5min)
+- **📈 Technical Analysis**: Detects trendlines, support/resistance levels, Fibonacci retracements, and price structure
+- **🎯 Liquidity Zone Detection**: Identifies high-confluence liquidity zones using multiple confirmation methods
+- **⚡ Entry Model Detection**: Implements Entry Model 1 (direct entry) and Entry Model 2 (confirmation entry)
+- **🛡️ Risk Management**: Built-in risk management with configurable parameters and corrected R:R calculations
+
+### 📊 **Enhanced Batch Processing**
+- **⚡ Smart Batch Processing**: Process stocks in configurable batches (default: 20 stocks per batch)
+- **🎛️ Flexible Controls**: Set batch size, maximum stocks, and starting position via CLI
+- **📈 Real-time Progress**: Live progress tracking with batch completion summaries
+- **🔄 Incremental Results**: See results as each batch completes for faster feedback
+
+### 🎨 **Advanced Interactive Reports**
+- **🎯 Grouped Opportunities**: Stocks grouped by symbol with expandable detailed views
+- **📈📉 Bullish/Bearish Indicators**: Clear visual indicators showing trade direction
+- **🖱️ Click-to-Expand**: Interactive stock headers reveal detailed opportunity tables
+- **🎨 Color-Coded Elements**: 
+  - Green/Red headers for bullish/bearish stocks
+  - Color-coded R:R ratios (Excellent/Good/Fair/Poor)
+  - Score badges with performance-based colors
+- **📱 Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
+- **⚡ Hover Effects**: Smooth animations and visual feedback for better UX
+
+### 🔍 **Automated Screening & Analysis**
+- **🔍 Automated Screening**: Daily screening of 1000+ NSE stocks with real market prices
+- **📊 Interactive Charts**: Generates beautiful interactive HTML charts for opportunities
+- **📋 Comprehensive Reports**: Enhanced HTML, text and JSON reports with detailed analysis
+- **🎯 Smart Filtering**: Advanced filtering and ranking based on confluence scores
 
 ## Project Structure
 
@@ -55,30 +77,71 @@ Stock_TSOT/
    - **macOS**: `brew install ta-lib` first
    - **Linux**: Install development packages first: `sudo apt-get install build-essential`
 
+4. **Set up Kite API (Recommended for Real Data)**:
+   ```bash
+   # Copy credentials template
+   cp kite_credentials_template.txt kite_credentials.txt
+   
+   # Edit kite_credentials.txt with your actual Kite API credentials
+   # See KITE_API_SETUP.md for detailed instructions
+   
+   # Generate access token
+   python generate_kite_token.py
+   
+   # Test integration
+   python test_kite_integration.py
+   ```
+
+   **Without Kite API**: The system will use sample data for demonstration purposes.
+
 ## Usage
 
-### Complete Daily Screening
-Run complete analysis with charts and reports:
-```bash
-python main.py
-```
+### 🚀 **Enhanced Batch Screening**
 
-### Screening Only (No Charts)
-Run screening without generating charts (faster):
+**Basic Screening** (20 stocks per batch):
 ```bash
 python main.py --screening-only
 ```
 
-### Analyze Single Stock
+**Custom Batch Processing**:
+```bash
+# Process first 100 stocks in batches of 25
+python main.py --screening-only --max-stocks 100 --batch-size 25
+
+# Process first 50 stocks in batches of 10
+python main.py --screening-only --max-stocks 50 --batch-size 10
+
+# Start from stock 100, process 200 stocks in batches of 20
+python main.py --screening-only --start-from 100 --max-stocks 200 --batch-size 20
+```
+
+**All Available Options**:
+```bash
+python main.py --screening-only \
+  --max-stocks 100 \      # Maximum stocks to analyze
+  --batch-size 20 \       # Stocks per batch
+  --start-from 0 \        # Starting stock index
+  --log-level INFO        # Logging level
+```
+
+### 📊 **Single Stock Analysis**
 Analyze a specific stock in detail:
 ```bash
 python main.py --symbol RELIANCE
+python main.py --symbol TCS
+python main.py --symbol HDFCBANK
 ```
 
-### Set Log Level
-Control logging verbosity:
+### 🎛️ **Advanced Options**
 ```bash
-python main.py --log-level DEBUG
+# Debug mode with detailed logging
+python main.py --screening-only --log-level DEBUG
+
+# Quick test with first 10 stocks
+python main.py --screening-only --max-stocks 10 --batch-size 5
+
+# Process large dataset efficiently
+python main.py --screening-only --max-stocks 500 --batch-size 50
 ```
 
 ## Configuration
@@ -91,17 +154,32 @@ The system uses configuration files in `src/trading_system/config/settings.py`. 
 - **Market Hours**: Trading session times
 - **File Paths**: Output directories for reports and charts
 
-## Output Files
+## 📁 Output Files
 
-### Reports Directory
-- `daily_report_YYYYMMDD_HHMM.txt`: Human-readable daily report
-- `opportunities_YYYYMMDD_HHMM.json`: Machine-readable opportunity data
+### 📊 **Enhanced Reports Directory**
+- **`enhanced_batch_report_YYYYMMDD_HHMM.html`**: 🎨 **Interactive HTML Report**
+  - Grouped opportunities by stock symbol
+  - Click-to-expand detailed views
+  - Bullish/Bearish indicators
+  - Color-coded R:R ratios and scores
+  - Responsive design for all devices
+  - Professional presentation ready for sharing
 
-### Charts Directory
-- `chart_SYMBOL_MODEL.html`: Interactive charts for top opportunities
+- **`daily_report_YYYYMMDD_HHMM.txt`**: 📋 Human-readable daily report
+- **`opportunities_YYYYMMDD_HHMM.json`**: 🔧 Machine-readable opportunity data
 
-### Logs Directory
-- `trading_system_YYYYMMDD.log`: System logs with timestamps
+### 📈 **Charts Directory**
+- **`chart_SYMBOL_MODEL.html`**: Interactive charts for individual stock opportunities
+
+### 📝 **Logs Directory**
+- **`trading_system_YYYYMMDD.log`**: Clean system logs (no more yfinance errors!)
+
+### 🎯 **Report Features**
+- **Market Overview Dashboard**: Total opportunities, success rates, bullish/bearish breakdown
+- **Grouped Stock Analysis**: All opportunities for each stock in expandable sections  
+- **Detailed Breakdown**: Comprehensive analysis cards for top performing stocks
+- **Interactive Elements**: Hover effects, smooth animations, click handlers
+- **Mobile Optimized**: Perfect viewing experience on any device
 
 ## Key Features Explained
 
@@ -156,11 +234,25 @@ Modify the `TradingConfig` class in the settings file.
 ### Changing Analysis Parameters
 Update the `AnalysisConfig` class for technical analysis settings.
 
-## Performance
+## ⚡ Performance & Scalability
 
-- **Full Screening**: ~2-5 minutes for 50 stocks (depending on internet speed)
+### 🚀 **Enhanced Batch Performance**
+- **Batch Processing**: ~1-2 minutes per 20 stocks (with Kite API)
+- **Scalable Architecture**: Process 100s or 1000s of stocks efficiently
+- **Smart Progress Tracking**: Real-time feedback on batch completion
+- **Memory Efficient**: ~200-500MB during execution regardless of batch size
+
+### 📊 **Processing Times**
 - **Single Stock Analysis**: ~5-10 seconds
-- **Memory Usage**: ~200-500MB during execution
+- **20 Stock Batch**: ~2-3 minutes  
+- **100 Stock Analysis**: ~10-15 minutes (5 batches of 20)
+- **500+ Stock Screening**: ~45-60 minutes (configurable batch sizes)
+
+### 🎯 **Optimization Features**
+- **Configurable Batch Sizes**: Balance speed vs memory usage
+- **Incremental Results**: See opportunities as they're found
+- **Clean Logging**: No more unnecessary yfinance error spam
+- **Real-time Data**: Direct Kite API integration for accurate prices
 
 ## Disclaimer
 

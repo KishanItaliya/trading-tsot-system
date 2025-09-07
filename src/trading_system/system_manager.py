@@ -5,7 +5,6 @@ Main system manager that coordinates all components
 import logging
 from typing import List, Optional
 from datetime import datetime
-import yfinance as yf
 
 from .data.market_data_fetcher import MarketDataFetcher
 from .data.data_processor import DataProcessor
@@ -87,6 +86,114 @@ class TradingSystemManager:
         final_opportunities = final_opportunities[:max_opportunities]
         
         logger.info(f"Screening complete. Found {len(final_opportunities)} opportunities.")
+        return final_opportunities
+    
+    def batch_screening(self, batch_size: int = 50, max_stocks: Optional[int] = None, 
+                       start_from: int = 0) -> List[TradingOpportunity]:
+        """Batch screening function - processes stocks in batches"""
+        logger.info(f"Starting batch screening with batch_size={batch_size}, max_stocks={max_stocks}, start_from={start_from}")
+        
+        # Determine stock list to process
+        stocks_to_process = self.nse_stocks[start_from:]
+        if max_stocks:
+            stocks_to_process = stocks_to_process[:max_stocks]
+        
+        total_stocks = len(stocks_to_process)
+        all_opportunities = []
+        processed_count = 0
+        
+        logger.info(f"Will process {total_stocks} stocks in batches of {batch_size}")
+        
+        # Process stocks in batches
+        for batch_start in range(0, total_stocks, batch_size):
+            batch_end = min(batch_start + batch_size, total_stocks)
+            current_batch = stocks_to_process[batch_start:batch_end]
+            batch_num = (batch_start // batch_size) + 1
+            total_batches = (total_stocks + batch_size - 1) // batch_size
+            
+            logger.info(f"Processing batch {batch_num}/{total_batches} ({len(current_batch)} stocks)")
+            print(f"\n🔄 Processing Batch {batch_num}/{total_batches} ({len(current_batch)} stocks)")
+            print("=" * 60)
+            
+            batch_opportunities = []
+            
+            for symbol in current_batch:
+                try:
+                    logger.info(f"Analyzing {symbol}...")
+                    processed_count += 1
+                    
+                    # Show progress
+                    progress = (processed_count / total_stocks) * 100
+                    print(f"📊 [{processed_count:3d}/{total_stocks}] {symbol:<12} ({progress:5.1f}%)", end=" ... ")
+                    
+                    # Get multi-timeframe data
+                    market_data = self.data_fetcher.get_multi_timeframe_data(symbol)
+                    
+                    if not market_data or not market_data.is_valid:
+                        print("❌ No data")
+                        logger.warning(f"No valid data available for {symbol}")
+                        continue
+                    
+                    # Apply pre-screening filters
+                    daily_data = market_data.get_daily_data()
+                    if not self.data_processor.apply_pre_screening_filters(daily_data):
+                        print("⏭️  Filtered")
+                        logger.debug(f"{symbol} failed pre-screening filters")
+                        continue
+                    
+                    # Detect entry opportunities
+                    opportunities = self.entry_detector.detect_entry_models(market_data)
+                    
+                    found_opportunities = []
+                    for opp in opportunities:
+                        # Additional validation
+                        if self._validate_opportunity(opp, market_data):
+                            found_opportunities.append(opp)
+                            batch_opportunities.append(opp)
+                            all_opportunities.append(opp)
+                    
+                    if found_opportunities:
+                        best_opp = max(found_opportunities, key=lambda x: x.confluence_score)
+                        print(f"✅ {len(found_opportunities)} opp(s) - Best RR: {best_opp.risk_reward_ratio:.1f}")
+                        logger.info(f"Found {len(found_opportunities)} opportunities for {symbol}")
+                    else:
+                        print("⭕ No opportunities")
+                
+                except Exception as e:
+                    print(f"❌ Error: {str(e)[:30]}...")
+                    logger.error(f"Error analyzing {symbol}: {e}")
+                    continue
+            
+            # Batch summary
+            print(f"\n📈 Batch {batch_num} Complete: Found {len(batch_opportunities)} opportunities")
+            if batch_opportunities:
+                best_batch_opp = max(batch_opportunities, key=lambda x: x.confluence_score)
+                print(f"🏆 Best in batch: {best_batch_opp.symbol} (Score: {int(best_batch_opp.confluence_score)}, RR: {best_batch_opp.risk_reward_ratio:.1f})")
+            
+            print("=" * 60)
+        
+        # Sort all opportunities by confluence score
+        final_opportunities = sorted(
+            all_opportunities, 
+            key=lambda x: x.confluence_score, 
+            reverse=True
+        )
+        
+        # Apply max opportunities limit
+        max_opportunities = config.trading.max_opportunities
+        if len(final_opportunities) > max_opportunities:
+            final_opportunities = final_opportunities[:max_opportunities]
+            logger.info(f"Limited results to top {max_opportunities} opportunities")
+        
+        print(f"\n🎉 Batch screening complete!")
+        print(f"📊 Processed: {processed_count} stocks")
+        print(f"🎯 Found: {len(final_opportunities)} total opportunities")
+        
+        if final_opportunities:
+            best_overall = final_opportunities[0]
+            print(f"🏆 Best overall: {best_overall.symbol} (Score: {int(best_overall.confluence_score)}, RR: {best_overall.risk_reward_ratio:.1f})")
+        
+        logger.info(f"Batch screening complete. Processed {processed_count} stocks, found {len(final_opportunities)} opportunities.")
         return final_opportunities
     
     def _validate_opportunity(self, opportunity: TradingOpportunity, market_data) -> bool:
@@ -202,44 +309,60 @@ class TradingSystemManager:
             logger.info(f"Analyzing single stock: {symbol}")
             
             # Get market data
+            logger.info(f"Fetching market data for {symbol}...")
             market_data = self.data_fetcher.get_multi_timeframe_data(symbol)
             
             if not market_data or not market_data.is_valid:
                 return {'error': f'No valid data available for {symbol}'}
             
+            logger.info(f"Data fetched - {len(market_data.timeframes)} timeframes available")
+            
             # Run analysis
+            logger.info(f"Starting technical analysis for {symbol}...")
             daily_data = market_data.get_daily_data()
             
             # Pre-screening
+            logger.info(f"Running pre-screening filters...")
             passes_filters = self.data_processor.apply_pre_screening_filters(daily_data)
+            logger.info(f"Pre-screening completed")
             
             # Technical analysis
+            logger.info(f"Detecting trendlines...")
             trendlines = self.analyzer.detect_trendlines(daily_data)
+            logger.info(f"Finding support/resistance levels...")
             levels = self.analyzer.find_support_resistance_levels(daily_data)
+            logger.info(f"Calculating Fibonacci levels...")
             fib_data = self.analyzer.calculate_fibonacci_levels(daily_data)
+            logger.info(f"Analyzing price structure...")
             structure = self.analyzer.identify_price_structure(daily_data)
             
             # Liquidity zones
+            logger.info(f"Finding liquidity zones...")
             liquidity_zones = self.liquidity_detector.find_liquidity_zones(market_data)
             
             # Entry opportunities
+            logger.info(f"Detecting entry opportunities...")
             opportunities = self.entry_detector.detect_entry_models(market_data)
+            logger.info(f"Analysis complete! Found {len(opportunities)} opportunities")
             
             return {
                 'symbol': symbol,
                 'current_price': market_data.current_price,
                 'passes_filters': passes_filters,
+                'trendlines': trendlines,  # Full list for compatibility
+                'levels': levels,  # Full list for compatibility
+                'liquidity_zones': liquidity_zones,  # Full list for compatibility
+                'opportunities': opportunities,  # Full list for compatibility
                 'trendlines_count': len(trendlines),
                 'support_resistance_levels': len(levels),
                 'fibonacci_data': fib_data,
                 'price_structure': structure,
                 'liquidity_zones_count': len(liquidity_zones),
                 'opportunities_count': len(opportunities),
-                'opportunities': [opp.to_dict() for opp in opportunities],
                 'detailed_analysis': {
                     'trendlines': trendlines[:3],  # Top 3
                     'levels': levels[:5],  # Top 5
-                    'liquidity_zones': liquidity_zones
+                    'liquidity_zones': liquidity_zones[:3] if len(liquidity_zones) > 3 else liquidity_zones
                 }
             }
             
