@@ -747,7 +747,7 @@ class HTMLReportGenerator:
         sorted_opportunities = sorted(opportunities, key=lambda x: x.confluence_score, reverse=True)
         
         table_rows = ""
-        for i, opp in enumerate(sorted_opportunities[:20], 1):  # Show top 20
+        for i, opp in enumerate(sorted_opportunities, 1):  # Show all opportunities
             entry_icon = "🚀" if opp.entry_model == "Direct Entry" else "⏳"
             
             table_rows += f"""

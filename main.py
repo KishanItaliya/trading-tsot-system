@@ -26,6 +26,8 @@ def main():
                        help='Set logging level')
     parser.add_argument('--screening-only', action='store_true', 
                        help='Run screening only without generating charts')
+    parser.add_argument('--with-charts', '-c', action='store_true',
+                       help='Generate interactive charts for trading opportunities')
     parser.add_argument('--batch-size', '-b', type=int, default=20,
                        help='Number of stocks to process in each batch (default: 20)')
     parser.add_argument('--max-stocks', '-m', type=int, default=None,
@@ -47,7 +49,7 @@ def main():
         if args.symbol:
             # Analyze single stock
             logger.info(f"Analyzing single stock: {args.symbol}")
-            result = system.analyze_single_stock(args.symbol.upper())
+            result = system.analyze_single_stock(args.symbol.upper(), generate_charts=args.with_charts)
             
             if 'error' in result:
                 print(console_formatter.format_error_message(f"Analysis failed: {result['error']}"))
@@ -60,7 +62,29 @@ def main():
             print(console_formatter.format_info_message("Generating detailed HTML report..."))
             html_report_path = html_generator.generate_stock_analysis_report(result)
             print(console_formatter.format_success_message(f"HTML Report saved: {html_report_path}"))
-            print(console_formatter.format_info_message("Open the HTML file in your browser for a beautiful, detailed report!"))
+            
+            # Display chart information
+            chart_files = result.get('chart_files', [])
+            opportunities_count = result.get('opportunities_count', 0)
+            
+            if args.with_charts:
+                if chart_files:
+                    print(console_formatter.format_success_message(f"Interactive Charts saved: {len(chart_files)} chart(s)"))
+                    for chart_file in chart_files:
+                        chart_name = chart_file.split('/')[-1] if '/' in chart_file else chart_file.split('\\')[-1]
+                        print(console_formatter.format_info_message(f"   📊 {chart_name}"))
+                    print(console_formatter.format_info_message("📈 Open chart files in your browser to see detailed technical patterns!"))
+                elif opportunities_count > 0:
+                    print(console_formatter.format_info_message("❓ Charts requested but none generated - check for errors"))
+                else:
+                    print(console_formatter.format_info_message("📊 No charts generated - no trading opportunities found"))
+            else:
+                if opportunities_count > 0:
+                    print(console_formatter.format_info_message(f"💡 {opportunities_count} opportunity(ies) found - use --with-charts to visualize patterns!"))
+                else:
+                    print(console_formatter.format_info_message("📊 No trading opportunities found"))
+            
+            print(console_formatter.format_info_message("💡 Open the HTML report for complete analysis!"))
             
         else:
             # Run complete screening
@@ -71,7 +95,8 @@ def main():
                 all_opportunities = system.batch_screening(
                     batch_size=args.batch_size,
                     max_stocks=args.max_stocks,
-                    start_from=args.start_from
+                    start_from=args.start_from,
+                    generate_charts=args.with_charts
                 )
                 
                 if all_opportunities:

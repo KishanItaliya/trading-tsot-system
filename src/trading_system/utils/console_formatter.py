@@ -159,7 +159,7 @@ class ConsoleFormatter:
         # Sort opportunities by score
         sorted_opps = sorted(opportunities, key=lambda x: x.confluence_score, reverse=True)
         
-        for i, opp in enumerate(sorted_opps[:10], 1):  # Top 10
+        for i, opp in enumerate(sorted_opps, 1):  # Show all opportunities
             # Score indicator
             if opp.confluence_score >= 35:
                 score_indicator = "🟢"

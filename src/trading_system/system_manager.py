@@ -82,14 +82,12 @@ class TradingSystemManager:
             reverse=True
         )
         
-        max_opportunities = config.trading.max_opportunities
-        final_opportunities = final_opportunities[:max_opportunities]
-        
+        # No limit on opportunities - capture all valid opportunities!
         logger.info(f"Screening complete. Found {len(final_opportunities)} opportunities.")
         return final_opportunities
     
     def batch_screening(self, batch_size: int = 50, max_stocks: Optional[int] = None, 
-                       start_from: int = 0) -> List[TradingOpportunity]:
+                       start_from: int = 0, generate_charts: bool = False) -> List[TradingOpportunity]:
         """Batch screening function - processes stocks in batches"""
         logger.info(f"Starting batch screening with batch_size={batch_size}, max_stocks={max_stocks}, start_from={start_from}")
         
@@ -179,11 +177,7 @@ class TradingSystemManager:
             reverse=True
         )
         
-        # Apply max opportunities limit
-        max_opportunities = config.trading.max_opportunities
-        if len(final_opportunities) > max_opportunities:
-            final_opportunities = final_opportunities[:max_opportunities]
-            logger.info(f"Limited results to top {max_opportunities} opportunities")
+        # No limit on opportunities - capture all valid opportunities!
         
         print(f"\n🎉 Batch screening complete!")
         print(f"📊 Processed: {processed_count} stocks")
@@ -192,6 +186,14 @@ class TradingSystemManager:
         if final_opportunities:
             best_overall = final_opportunities[0]
             print(f"🏆 Best overall: {best_overall.symbol} (Score: {int(best_overall.confluence_score)}, RR: {best_overall.risk_reward_ratio:.1f})")
+            
+            # Generate charts if requested
+            if generate_charts:
+                print(f"\n📊 Generating charts for top opportunities...")
+                chart_files = self.dashboard.save_opportunity_charts(final_opportunities, max_charts=config.trading.top_charts_count)
+                print(f"✅ Generated {len(chart_files)} chart files")
+            else:
+                print(f"💡 Use --with-charts to generate visual charts for {len(final_opportunities)} opportunities")
         
         logger.info(f"Batch screening complete. Processed {processed_count} stocks, found {len(final_opportunities)} opportunities.")
         return final_opportunities
@@ -303,7 +305,7 @@ class TradingSystemManager:
                 'error': str(e)
             }
     
-    def analyze_single_stock(self, symbol: str) -> dict:
+    def analyze_single_stock(self, symbol: str, generate_charts: bool = False) -> dict:
         """Analyze a single stock in detail"""
         try:
             logger.info(f"Analyzing single stock: {symbol}")
@@ -345,6 +347,15 @@ class TradingSystemManager:
             opportunities = self.entry_detector.detect_entry_models(market_data)
             logger.info(f"Analysis complete! Found {len(opportunities)} opportunities")
             
+            # Generate charts for all opportunities found (if requested)
+            chart_files = []
+            if opportunities and generate_charts:
+                logger.info(f"Generating interactive charts for {len(opportunities)} opportunities...")
+                chart_files = self.dashboard.save_opportunity_charts(opportunities, max_charts=len(opportunities))
+                logger.info(f"Generated {len(chart_files)} chart files")
+            elif opportunities and not generate_charts:
+                logger.info(f"Charts disabled - use --with-charts to generate {len(opportunities)} chart(s)")
+            
             return {
                 'symbol': symbol,
                 'current_price': market_data.current_price,
@@ -359,6 +370,7 @@ class TradingSystemManager:
                 'price_structure': structure,
                 'liquidity_zones_count': len(liquidity_zones),
                 'opportunities_count': len(opportunities),
+                'chart_files': chart_files,  # Add chart files to result
                 'detailed_analysis': {
                     'trendlines': trendlines[:3],  # Top 3
                     'levels': levels[:5],  # Top 5
